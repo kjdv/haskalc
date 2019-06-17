@@ -1,0 +1,4 @@
+.stack-work/
+haskalc.cabal
+*~
+stack.yaml.lock
