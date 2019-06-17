@@ -11,6 +11,7 @@ data Token =
   | Open
   | Close
   | Comma
+  | Equals
   | Identifier String
   | Number Double
   deriving (Show, Eq)
@@ -23,6 +24,7 @@ tokenize ('-':xs) = Minus : tokenize xs
 tokenize ('*':xs) = Times : tokenize xs
 tokenize ('/':xs) = Divide : tokenize xs
 tokenize ('^':xs) = Power : tokenize xs
+tokenize ('=':xs) = Equals : tokenize xs
 
 tokenize ('(':xs) = Open : tokenize xs
 tokenize (')':xs) = Close : tokenize xs

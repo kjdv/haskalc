@@ -8,7 +8,7 @@ tokenizeSpec :: Spec
 tokenizeSpec = do
   describe "tokenize" $ do
     it "recongnizes the math operators" $ do
-      tokenize "+-*/^" `shouldBe` [Plus,Minus,Times,Divide,Power]
+      tokenize "+-*/^=" `shouldBe` [Plus,Minus,Times,Divide,Power,Equals]
 
     it "recognizes parenthesis" $ do
       tokenize "(,)" `shouldBe` [Open,Comma,Close]
