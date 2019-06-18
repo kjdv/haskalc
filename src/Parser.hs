@@ -1,6 +1,7 @@
 module Parser where
 
 import Tokenizer
+import Control.Monad
 
 {- Grammar:
 
@@ -65,3 +66,9 @@ match base predicate = Parser matchParse where
 -- parser that matches a specific token
 symbol :: Token -> Parser Token
 symbol tok = match item (== tok)
+
+choice :: Parser a -> Parser a -> Parser a
+choice p q = Parser choiceParse where
+  choiceParse ts = case parse p ts of
+    Nothing -> parse q ts
+    Just x -> Just x
