@@ -2,6 +2,9 @@ module Parser where
 
 import Tokenizer
 
+import Control.Monad
+import Control.Applicative
+
 {- Grammar:
 
 program = assignment | expression
@@ -20,51 +23,25 @@ variable_decleration = identifier
 
 -}
 
-data Expression = Expression Term [(BinOp,Term)] deriving (Show, Eq)
-data Term = Term UFactor [(BinOp,UFactor)] deriving (Show, Eq)
-data UFactor = UFactor (Maybe UnOp) Factor deriving (Show, Eq)
-data Factor = FactorVar Variable | FactorExp Expression deriving (Show, Eq)
-data Variable = VariableFunc Function | VariableVar String | VariableNum Double deriving (Show, Eq)
-data Function = Function [Expression] deriving (Show, Eq)
-data BinOp = PlusOp | MinusOp | TimesOp | DivideOp | PowerOp deriving (Show, Eq)
-data UnOp = UnMinusOp deriving (Show, Eq)
+-- Taking insparation from Functional Pearls - Monadic Parsing in Haskell (Graham Hutton, Erik Meijer) - http://www.cs.nott.ac.uk/~pszgmh/pearl.pdf
 
-parseExpression :: [Token] -> Maybe (Expression, [Token])
-parseExpression _ = Nothing
+newtype Parser a = Parser ([Token] -> [(a, [Token])])
 
-parseTerm :: [Token] -> Maybe (Term, [Token])
-parseTerm xs =
-  case parseUFactor xs of
-    Just (ufac,rst) -> Just (Term ufac [], rst) -- todo: multi terms
-    Nothing -> Nothing
+instance Functor Parser where
+  fmap f (Parser ts) = Parser (\s -> [(f a, b) | (a, b) <- ts s])
 
-parseUFactor :: [Token] -> Maybe (UFactor, [Token])
-parseUFactor (Minus:xs) =
-  case parseFactor xs of
-    Just (fac,rst) -> Just (UFactor (Just UnMinusOp) fac, rst)
-    Nothing -> Nothing
-parseUFactor xs =
-  case parseFactor xs of
-    Just (fac,rst) -> Just (UFactor Nothing fac, rst)
-    Nothing -> Nothing
+instance Applicative Parser where
+  pure = return
+  (Parser ts1) <*> (Parser ts2) = Parser (\s -> [(f a, s2) | (f, s1) <- ts1 s, (a, s2) <- ts2 s1])
 
-parseFactor :: [Token] -> Maybe (Factor, [Token])
-parseFactor xs =
-  case parseVariable xs of
-    Just (var,rst) -> Just (FactorVar var, rst)
-    Nothing -> Nothing
--- todo: expression
+instance Monad Parser where
+  return a = Parser (\ts -> [(a,ts)])
+  p >>= f  = Parser (\ts -> concat [parse (f a) ts' | (a,ts') <- parse p ts]) where
+    parse (Parser p) = p
 
-parseVariable :: [Token] -> Maybe (Variable, [Token])
-parseVariable (Identifier x:xs) =
-  case parseFunction (Identifier x:xs) of
-    Just (fnc,rst) -> Just (VariableFunc fnc, rst)
-    Nothing -> Just (VariableVar x, xs)
-
-parseVariable (Number x:xs) = Just (VariableNum x, xs)
-parseVariable _ = Nothing
-
-parseFunction :: [Token] -> Maybe (Function, [Token])
-parseFunction (Identifier x:Open:Close:xs) = Just (Function [], xs)
--- todo: with args
-parseFunction _ = Nothing
+-- turns a token into a parser for that token
+item :: Parser Token
+item = Parser tokenParse where
+  tokenParse ts = case ts of
+    []     -> []
+    (t:ts) -> [(t,ts)]
