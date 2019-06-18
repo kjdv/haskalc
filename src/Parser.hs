@@ -24,7 +24,14 @@ variable_decleration = identifier
 -- http://www.cs.nott.ac.uk/~pszgmh/pearl.pdf
 -- also: https://github.com/pbv/tapf-parsing
 
-newtype Parser a = Parser ([Token] -> [(a, [Token])])
+newtype Parser a = Parser ([Token] -> Maybe (a, [Token]))
+
+instance Monad Parser where
+  return a = Parser (\ts -> Just (a,ts))
+  p >>= f  = Parser (apply) where
+    apply ts = case parse p ts of
+      Nothing -> Nothing
+      Just (a,ts) -> parse (f a) ts
 
 instance Functor Parser where
   fmap f p = do
@@ -38,16 +45,12 @@ instance Applicative Parser where
     x <- q
     return (f x)
 
-instance Monad Parser where
-  return a = Parser (\ts -> [(a,ts)])
-  p >>= f  = Parser (\ts -> concat [parse (f a) ts' | (a,ts') <- parse p ts])
-
-parse :: Parser a -> [Token] -> [(a, [Token])]
+parse :: Parser a -> [Token] -> Maybe (a, [Token])
 parse (Parser p) = p
 
 -- turns a token into a parser for that token
 item :: Parser Token
 item = Parser tokenParse where
   tokenParse ts = case ts of
-    []     -> []
-    (t:ts) -> [(t,ts)]
+    []     -> Nothing
+    (t:ts) -> Just (t,ts)

@@ -9,6 +9,6 @@ parserSpec = do
   describe "parser fundamentals" $ do
     describe "item" $ do
       it "parsers a single token" $ do
-        parse item [Plus, Minus] `shouldBe` [(Plus, [Minus])]
+        parse item [Plus, Minus] `shouldBe` Just (Plus, [Minus])
       it "returns emtpy on empty input" $ do
-        parse item [] `shouldBe` []
+        parse item [] `shouldBe` Nothing
