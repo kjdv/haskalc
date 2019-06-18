@@ -29,3 +29,12 @@ parserSpec = do
       parseUFactor [Number 1.0] `shouldBe` Just (UFactor Nothing (FactorVar (VariableNum 1.0)), [])
     it "parses a negated factor" $ do
       parseUFactor [Minus, Number 1.0] `shouldBe` Just (UFactor (Just UnMinusOp) (FactorVar (VariableNum 1.0)), [])
+
+  describe "parseTerm" $ do
+    it "parses an identifier as term" $ do
+      parseTerm [Identifier "a"] `shouldBe` Just (Term (UFactor Nothing (FactorVar (VariableVar "a"))) [], [])
+    --it "combines with operators" $ do
+    --  parseTerm [Identifier "a", Times, Number 1.0] `shouldBe`
+    --    Just (Term (UFactor Nothing (FactorVar (VariableVar "a")))
+    --      [(TimesOp, UFactor Nothing (FactorVar (VariableNum 1.0)))],
+    --    [])

@@ -21,7 +21,7 @@ variable_decleration = identifier
 -}
 
 data Expression = Expression Term [(BinOp,Term)] deriving (Show, Eq)
-data Term = Term Factor [(BinOp,Factor)] deriving (Show, Eq)
+data Term = Term UFactor [(BinOp,UFactor)] deriving (Show, Eq)
 data UFactor = UFactor (Maybe UnOp) Factor deriving (Show, Eq)
 data Factor = FactorVar Variable | FactorExp Expression deriving (Show, Eq)
 data Variable = VariableFunc Function | VariableVar String | VariableNum Double deriving (Show, Eq)
@@ -33,7 +33,10 @@ parseExpression :: [Token] -> Maybe (Expression, [Token])
 parseExpression _ = Nothing
 
 parseTerm :: [Token] -> Maybe (Term, [Token])
-parseTerm _ = Nothing
+parseTerm xs =
+  case parseUFactor xs of
+    Just (ufac,rst) -> Just (Term ufac [], rst) -- todo: multi terms
+    Nothing -> Nothing
 
 parseUFactor :: [Token] -> Maybe (UFactor, [Token])
 parseUFactor (Minus:xs) =
@@ -50,7 +53,7 @@ parseFactor xs =
   case parseVariable xs of
     Just (var,rst) -> Just (FactorVar var, rst)
     Nothing -> Nothing
--- todo: expression 
+-- todo: expression
 
 parseVariable :: [Token] -> Maybe (Variable, [Token])
 parseVariable (Identifier x:xs) =
