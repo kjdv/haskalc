@@ -1,7 +1,7 @@
 module ParserSpec where
 
 import Test.Hspec
-import Tokenize
+import Tokenizer
 import Parser
 
 parserSpec :: Spec

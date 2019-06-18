@@ -1,4 +1,4 @@
-module Tokenize where
+module Tokenizer where
 
 import Data.Char
 

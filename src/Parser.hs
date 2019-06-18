@@ -1,6 +1,6 @@
 module Parser where
 
-import Tokenize
+import Tokenizer
 
 {- Grammar:
 

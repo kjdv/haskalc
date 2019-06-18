@@ -1,11 +1,11 @@
-module TokenizeSpec where
+module TokenizerSpec where
 
 import Test.Hspec
 import Control.Exception (evaluate)
-import Tokenize
+import Tokenizer
 
-tokenizeSpec :: Spec
-tokenizeSpec = do
+tokenizerSpec :: Spec
+tokenizerSpec = do
   describe "tokenize" $ do
     it "recongnizes the math operators" $ do
       tokenize "+-*/^=" `shouldBe` [Plus,Minus,Times,Divide,Power,Equals]

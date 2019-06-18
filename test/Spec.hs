@@ -1,8 +1,8 @@
 import Test.Hspec
-import TokenizeSpec
+import TokenizerSpec
 import ParserSpec
 
 main :: IO ()
 main = hspec $ do
-  tokenizeSpec
+  tokenizerSpec
   parserSpec
