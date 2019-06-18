@@ -35,7 +35,7 @@ instance Applicative Parser where
   pure = return
   p <*> q = do
     f <- p
-    x<-q
+    x <- q
     return (f x)
 
 instance Monad Parser where
