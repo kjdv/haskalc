@@ -54,3 +54,14 @@ item = Parser tokenParse where
   tokenParse ts = case ts of
     []     -> Nothing
     (t:ts) -> Just (t,ts)
+
+-- parser that applies a predicate
+match :: Parser a -> (a -> Bool) -> Parser a
+match base predicate = Parser matchParse where
+  matchParse ts = do
+    (x, rest) <- parse base ts
+    if predicate x then Just (x, rest) else Nothing
+
+-- parser that matches a specific token
+symbol :: Token -> Parser Token
+symbol tok = match item (== tok)
