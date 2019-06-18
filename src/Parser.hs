@@ -67,8 +67,9 @@ match base predicate = Parser matchParse where
 symbol :: Token -> Parser Token
 symbol tok = match item (== tok)
 
-choice :: Parser a -> Parser a -> Parser a
-choice p q = Parser choiceParse where
+choice :: [Parser a] -> Parser a
+choice [p,q] = Parser choiceParse where
   choiceParse ts = case parse p ts of
     Nothing -> parse q ts
     Just x -> Just x
+choice (p:ps) = choice [p, choice ps]
