@@ -30,9 +30,14 @@ parserSpec = do
       it "fails to match others" $ do
         parse p [Divide] `shouldBe` Nothing
       it "matches the first" $ do
-        let q = many (symbol Plus)
-        let pq = choice (q, symbol Plus)
-        parse pq [Plus, Plus] `shouldBe` Just ([Plus,Plus], [])
+        let q = choice [ transform (symbol Plus) (\_ -> Minus),
+                         transform (symbol Times) (\_ -> Divide),
+                         symbol Plus,
+                         symbol Times,
+                         symbol Divide]
+        parse q [Plus] `shouldBe` Just (Minus, []) -- choice that turs a plus into a minus picked first
+        parse q [Times] `shouldBe` Just (Divide, [])
+        parse q [Divide] `shouldBe` Just (Divide, [])
 
     describe "many" $ do
       let p = many (symbol Plus)
