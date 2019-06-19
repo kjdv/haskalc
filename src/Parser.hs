@@ -76,13 +76,14 @@ choice [p,q] = Parser choiceParse where
     Just x -> Just x
 choice (p:ps) = choice [p, choice ps]
 
-many :: Parser a -> Parser [a]
-many p = Parser manyParse where
-  manyParse ts = case parse p ts of
-    Nothing -> Just ([],ts)
-    Just (x,xs) -> do
-      (y,ys) <- manyParse xs
-      Just (x:y, ys)
+zeroOrMore :: Parser a -> Parser [a]
+zeroOrMore p = choice [oneOrMore p, return []]
+
+oneOrMore :: Parser a -> Parser [a]
+oneOrMore p = do
+  a <- p
+  as <- zeroOrMore p
+  return (a:as)
 
 transform :: Parser a -> (a -> b) -> Parser b
 transform p f = fmap f p

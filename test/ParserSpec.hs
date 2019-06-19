@@ -39,11 +39,23 @@ parserSpec = do
         parse q [Times] `shouldBe` Just (Divide, [])
         parse q [Divide] `shouldBe` Just (Divide, [])
 
-    describe "many" $ do
-      let p = many (symbol Plus)
+    describe "zeroOrMore" $ do
+      let p = zeroOrMore (symbol Plus)
       it "matches zero instances" $ do
         parse p [] `shouldBe` Just ([], [])
         parse p [Minus] `shouldBe` Just ([], [Minus])
+      it "matches a single instance" $ do
+        parse p [Plus] `shouldBe` Just ([Plus], [])
+        parse p [Plus, Minus] `shouldBe` Just ([Plus], [Minus])
+      it "matches n>1 instances" $ do
+        parse p [Plus, Plus] `shouldBe` Just ([Plus,Plus], [])
+        parse p [Plus, Plus, Plus, Minus] `shouldBe` Just ([Plus, Plus, Plus], [Minus])
+
+    describe "oneOrMore" $ do
+      let p = oneOrMore (symbol Plus)
+      it "does not match zero instances" $ do
+        parse p [] `shouldBe` Nothing
+        parse p [Minus] `shouldBe` Nothing
       it "matches a single instance" $ do
         parse p [Plus] `shouldBe` Just ([Plus], [])
         parse p [Plus, Minus] `shouldBe` Just ([Plus], [Minus])
