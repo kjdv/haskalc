@@ -49,6 +49,9 @@ instance Applicative Parser where
 parse :: Parser a -> [Token] -> Maybe (a, [Token])
 parse (Parser p) = p
 
+empty :: Parser a
+empty = Parser (\_ -> Nothing)
+
 -- turns a token into a parser for that token
 item :: Parser Token
 item = Parser tokenParse where
@@ -58,10 +61,9 @@ item = Parser tokenParse where
 
 -- parser that applies a predicate
 match :: Parser a -> (a -> Bool) -> Parser a
-match base predicate = Parser matchParse where
-  matchParse ts = do
-    (x, rest) <- parse base ts
-    if predicate x then Just (x, rest) else Nothing
+match base predicate = do
+  t <- base
+  if predicate t then return t else empty
 
 -- parser that matches a specific token
 symbol :: Token -> Parser Token

@@ -29,4 +29,3 @@ parserSpec = do
         parse p [Times] `shouldBe` Just (Times, [])
       it "fails to match others" $ do
         parse p [Divide] `shouldBe` Nothing
-  
