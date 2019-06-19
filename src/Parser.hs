@@ -75,3 +75,9 @@ choice [p,q] = Parser choiceParse where
     Nothing -> parse q ts
     Just x -> Just x
 choice (p:ps) = choice [p, choice ps]
+
+many :: Parser a -> Parser [a]
+many p = Parser manyParse where
+  manyParse ts = case parse p ts of
+    Nothing -> Just ([],ts)
+    Just (x,xs) -> do {(y,ys) <- manyParse xs; Just (x:y, ys)}
