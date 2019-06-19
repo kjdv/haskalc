@@ -52,6 +52,11 @@ parse (Parser p) = p
 empty :: Parser a
 empty = Parser (\_ -> Nothing)
 
+end :: Parser ()
+end = Parser endParse where
+  endParse [] = Just ((), [])
+  endParse _ = Nothing
+
 -- turns a token into a parser for that token
 item :: Parser Token
 item = Parser tokenParse where

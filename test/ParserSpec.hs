@@ -7,6 +7,12 @@ import Parser
 parserSpec :: Spec
 parserSpec = do
   describe "parser fundamentals" $ do
+    describe "end" $ do
+      it "matches the empty list" $ do
+        parse end [] `shouldBe` Just ((), [])
+      it "does not match the non-empty list" $ do
+        parse end [Plus] `shouldBe` Nothing
+        
     describe "item" $ do
       it "parsers a single token" $ do
         parse item [Plus, Minus] `shouldBe` Just (Plus, [Minus])
