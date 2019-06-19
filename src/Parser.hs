@@ -80,7 +80,9 @@ many :: Parser a -> Parser [a]
 many p = Parser manyParse where
   manyParse ts = case parse p ts of
     Nothing -> Just ([],ts)
-    Just (x,xs) -> do {(y,ys) <- manyParse xs; Just (x:y, ys)}
+    Just (x,xs) -> do
+      (y,ys) <- manyParse xs
+      Just (x:y, ys)
 
 transform :: Parser a -> (a -> b) -> Parser b
-transform p f = fmap f p 
+transform p f = fmap f p
