@@ -29,7 +29,10 @@ parserSpec = do
         parse p [Times] `shouldBe` Just (Times, [])
       it "fails to match others" $ do
         parse p [Divide] `shouldBe` Nothing
-      
+      it "matches the first" $ do
+        let q = many (symbol Plus)
+        let pq = choice (q, symbol Plus)
+        parse pq [Plus, Plus] `shouldBe` Just ([Plus,Plus], [])
 
     describe "many" $ do
       let p = many (symbol Plus)
