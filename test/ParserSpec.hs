@@ -44,6 +44,9 @@ parserSpec = do
         parse q [Plus] `shouldBe` Just (Minus, []) -- choice that turs a plus into a minus picked first
         parse q [Times] `shouldBe` Just (Divide, [])
         parse q [Divide] `shouldBe` Just (Divide, [])
+      it "does not execute the second option when not needed" $ do
+        let q = (symbol Plus) `choice` (transform (symbol Plus) (\_ -> error "should not be called"))
+        parse q [Plus] `shouldBe` Just (Plus, [])
 
     describe "zeroOrMore" $ do
       let p = zeroOrMore (symbol Plus)

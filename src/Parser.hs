@@ -77,8 +77,7 @@ symbol tok = match item (== tok)
 
 choice :: Parser a -> Parser a -> Parser a
 choice p q = Parser choiceParse where
-  choiceParse ts = let options = [parse p ts, parse q ts]
-                    in (listToMaybe . catMaybes) options
+  choiceParse ts = (listToMaybe . catMaybes) [parse p ts, parse q ts]
 
 zeroOrMore :: Parser a -> Parser [a]
 zeroOrMore p = choice (oneOrMore p) (return [])
