@@ -12,7 +12,7 @@ parserSpec = do
         parse end [] `shouldBe` Just ((), [])
       it "does not match the non-empty list" $ do
         parse end [Plus] `shouldBe` Nothing
-        
+
     describe "item" $ do
       it "parsers a single token" $ do
         parse item [Plus, Minus] `shouldBe` Just (Plus, [Minus])
@@ -28,7 +28,7 @@ parserSpec = do
         parse p [Minus] `shouldBe` Nothing
 
     describe "choice" $ do
-      let p = choice [symbol Plus, symbol Minus, symbol Times]
+      let p = (symbol Plus) `choice` (symbol Minus) `choice` (symbol Times)
       it "matches either choice" $ do
         parse p [Plus, Minus] `shouldBe` Just (Plus, [Minus])
         parse p [Minus, Plus] `shouldBe` Just (Minus, [Plus])
@@ -36,11 +36,11 @@ parserSpec = do
       it "fails to match others" $ do
         parse p [Divide] `shouldBe` Nothing
       it "matches the first" $ do
-        let q = choice [ transform (symbol Plus) (\_ -> Minus),
-                         transform (symbol Times) (\_ -> Divide),
-                         symbol Plus,
-                         symbol Times,
-                         symbol Divide]
+        let q = (transform (symbol Plus) (\_ -> Minus)) `choice`
+                (transform (symbol Times) (\_ -> Divide)) `choice`
+                (symbol Plus) `choice`
+                (symbol Times) `choice`
+                (symbol Divide)
         parse q [Plus] `shouldBe` Just (Minus, []) -- choice that turs a plus into a minus picked first
         parse q [Times] `shouldBe` Just (Divide, [])
         parse q [Divide] `shouldBe` Just (Divide, [])

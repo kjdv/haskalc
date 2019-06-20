@@ -2,6 +2,7 @@ module Parser where
 
 import Tokenizer
 import Control.Monad
+import Data.Maybe
 
 {- Grammar:
 
@@ -74,15 +75,13 @@ match base predicate = do
 symbol :: Token -> Parser Token
 symbol tok = match item (== tok)
 
-choice :: [Parser a] -> Parser a
-choice [p,q] = Parser choiceParse where
-  choiceParse ts = case parse p ts of
-    Nothing -> parse q ts
-    Just x -> Just x
-choice (p:ps) = choice [p, choice ps]
+choice :: Parser a -> Parser a -> Parser a
+choice p q = Parser choiceParse where
+  choiceParse ts = let options = [parse p ts, parse q ts]
+                    in (listToMaybe . catMaybes) options
 
 zeroOrMore :: Parser a -> Parser [a]
-zeroOrMore p = choice [oneOrMore p, return []]
+zeroOrMore p = choice (oneOrMore p) (return [])
 
 oneOrMore :: Parser a -> Parser [a]
 oneOrMore p = do
