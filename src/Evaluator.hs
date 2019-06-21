@@ -43,8 +43,8 @@ instance Evaluator Factor where
   evaluate (UFactor u f) ctx = applyU (o u) (evaluate f ctx) where
     o UMinusOp = (0-)
   evaluate (VarFactor v) ctx = evaluate v ctx
-  evaluate (ExpFactor e) _ = Error "not implemented"
-
+  evaluate (ExpFactor e) ctx = evaluate e ctx
+  
 instance Evaluator Term where
   evaluate (Term f fs) ctx = foldl combine (evaluate f ctx) fs where
     combine :: Result -> (Binop, Factor) -> Result
