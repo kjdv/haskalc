@@ -114,3 +114,14 @@ parserSpec = do
         parse parseFactor [Open, Identifier "x", Close] `shouldBe` Just (ExpFactor (EString "x"), [])
       it "parses a unary operator" $ do
         parse parseFactor [Minus, Number 1.0] `shouldBe` Just (UFactor UMinusOp (VarFactor (NumberVar 1.0)), [])
+
+    describe "terms" $ do
+      it "parses a variable" $ do
+        parse parseTerm [Number 1.0] `shouldBe` Just (Term (VarFactor (NumberVar 1.0)) [], [])
+      it "chains operators" $ do
+        parse parseTerm [Number 1.0, Power, Number 2.0, Times, Number 3.0, Divide, Number 4.0] `shouldBe`
+          Just (Term (VarFactor (NumberVar 1.0)) [
+            (PowerOp, VarFactor (NumberVar 2.0)),
+            (TimesOp, VarFactor (NumberVar 3.0)),
+            (DivideOp, VarFactor (NumberVar 4.0))
+          ], [])
