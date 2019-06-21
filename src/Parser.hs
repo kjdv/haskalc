@@ -4,23 +4,7 @@ import Tokenizer
 import Control.Monad
 import Data.Maybe
 
-{- Grammar:
-
-program = assignment | expression
-assignment = decleration '=' expression
-expression = term ('+' term | '-' term)*
-term = factor ('^' ufactor | '*' ufactor | '/' ufactor)*
-ufactor = ['-'] factor
-factor = (variable | '(' expression ')')
-
-variable = function | identifier | number
-function = identifier '(' expression (',' expression)* ')'
-
-decleration = function_decleration | variable_decleration
-function_decleration = identifier '(' identifier (',' identifier)* ')'
-variable_decleration = identifier
-
--}
+-- Parser building blocks
 
 -- Taking insparation from Functional Pearls - Monadic Parsing in Haskell (Graham Hutton, Erik Meijer)
 -- http://www.cs.nott.ac.uk/~pszgmh/pearl.pdf
@@ -88,5 +72,73 @@ oneOrMore p = do
   as <- zeroOrMore p
   return (a:as)
 
+zeroOrMoreSep :: Parser a -> Parser b -> Parser [a]
+zeroOrMoreSep p s = choice (oneOrMoreSep p s) (return [])
+
+oneOrMoreSep :: Parser a -> Parser b -> Parser [a]
+oneOrMoreSep p s = do
+  a <- p
+  as <- zeroOrMore (s >> p)
+  return (a:as)
+
 transform :: Parser a -> (a -> b) -> Parser b
 transform p f = fmap f p
+
+maybeTransform :: Parser a -> (a -> Maybe b) -> Parser b
+maybeTransform p f = Parser mt where
+  mt ts = case parse (transform p f) ts of
+    Nothing -> Nothing
+    Just (Nothing,_) -> Nothing
+    Just (Just x,rest) -> Just (x,rest)
+
+{- Grammar:
+
+program = (assignment | expression) EOF
+assignment = decleration '=' expression
+expression = term ('+' term | '-' term)*
+term = factor ('^' ufactor | '*' ufactor | '/' ufactor)*
+factor = '-' factor | (variable | '(' expression ')')
+
+variable = function | identifier | number
+function = identifier '(' expression (',' expression)* ')'
+
+decleration = function_decleration | variable_decleration
+function_decleration = identifier '(' identifier (',' identifier)* ')'
+variable_decleration = identifier
+
+-}
+
+data Expression = EString String deriving (Show, Eq) -- todo
+data Term = TString String deriving (Show, Eq) -- todo
+data Factor = FString  String deriving (Show, Eq) -- todo
+data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
+data Function = Function String [Expression] deriving (Show, Eq)
+
+parseNumber :: Parser Double
+parseNumber = maybeTransform item extractNumber
+
+parseIdentifier :: Parser String
+parseIdentifier = maybeTransform item extractIdentifier
+
+parseExpression :: Parser Expression
+parseExpression = transform parseIdentifier EString
+
+parseTerm :: Parser Term
+parseTerm = transform parseIdentifier TString
+
+parseFactor :: Parser Factor
+parseFactor = transform parseIdentifier FString
+
+parseVariable :: Parser Variable
+parseVariable =
+  transform parseFunction FunctionVar `choice`
+  transform parseIdentifier IdentifierVar `choice`
+  transform parseNumber NumberVar
+
+parseFunction :: Parser Function
+parseFunction = do
+  name <- parseIdentifier
+  symbol Open
+  args <- zeroOrMoreSep parseExpression (symbol Comma)
+  symbol Close
+  return (Function name args)

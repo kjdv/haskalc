@@ -38,3 +38,11 @@ tokenize (x:xs)
       let (num,rest) = head results
       Number num : tokenize rest
   | otherwise  = error ("unrecognized token '" ++ [x] ++ "'")
+
+extractNumber :: Token -> Maybe Double
+extractNumber (Number n) = Just n
+extractNumber _ = Nothing
+
+extractIdentifier :: Token -> Maybe String
+extractIdentifier (Identifier s) = Just s
+extractIdentifier _ = Nothing

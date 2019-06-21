@@ -60,6 +60,18 @@ parserSpec = do
         parse p [Plus, Plus] `shouldBe` Just ([Plus,Plus], [])
         parse p [Plus, Plus, Plus, Minus] `shouldBe` Just ([Plus, Plus, Plus], [Minus])
 
+    describe "zeroOrMoreSep" $ do
+      let p = zeroOrMoreSep (symbol Plus) (symbol Comma)
+      it "matches zero instances" $ do
+        parse p [] `shouldBe` Just ([], [])
+        parse p [Minus] `shouldBe` Just ([], [Minus])
+      it "matches a single instance" $ do
+        parse p [Plus] `shouldBe` Just ([Plus], [])
+        parse p [Plus, Comma, Minus] `shouldBe` Just ([Plus], [Comma, Minus])
+      it "matches n>1 instances" $ do
+        parse p [Plus, Comma, Plus] `shouldBe` Just ([Plus,Plus], [])
+        parse p [Plus, Comma, Plus, Comma, Plus, Minus] `shouldBe` Just ([Plus, Plus, Plus], [Minus])
+
     describe "oneOrMore" $ do
       let p = oneOrMore (symbol Plus)
       it "does not match zero instances" $ do
@@ -71,3 +83,26 @@ parserSpec = do
       it "matches n>1 instances" $ do
         parse p [Plus, Plus] `shouldBe` Just ([Plus,Plus], [])
         parse p [Plus, Plus, Plus, Minus] `shouldBe` Just ([Plus, Plus, Plus], [Minus])
+
+    describe "oneOrMoreSep" $ do
+      let p = oneOrMoreSep (symbol Plus) (symbol Comma)
+      it "does not match zero instances" $ do
+        parse p [] `shouldBe` Nothing
+        parse p [Minus] `shouldBe` Nothing
+      it "matches a single instance" $ do
+        parse p [Plus] `shouldBe` Just ([Plus], [])
+        parse p [Plus, Comma, Minus] `shouldBe` Just ([Plus], [Comma, Minus])
+      it "matches n>1 instances" $ do
+        parse p [Plus, Comma, Plus] `shouldBe` Just ([Plus,Plus], [])
+        parse p [Plus, Comma, Plus, Comma, Plus, Minus] `shouldBe` Just ([Plus, Plus, Plus], [Minus])
+
+  describe "clauses" $ do
+    describe "variables" $ do
+      it "parses identifiers" $ do
+        parse parseVariable [Identifier "x"] `shouldBe` Just (IdentifierVar "x", [])
+      it "parses numbers" $ do
+        parse parseVariable [Number 1.0] `shouldBe` Just (NumberVar 1.0, [])
+      it "parses functions" $ do
+        parse parseVariable [Identifier "x", Open, Close] `shouldBe` Just (FunctionVar (Function "x" []), [])
+        parse parseVariable [Identifier "x", Open, Identifier "y", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y"]), [])
+        parse parseVariable [Identifier "x", Open, Identifier "y", Comma, Identifier "z", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y", EString "z"]), [])
