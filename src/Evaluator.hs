@@ -4,50 +4,56 @@ import Parser
 import Data.Map (Map, lookup)
 import Data.Maybe
 
-data ContextVar = Constant Result | Callable ([Result] -> Result)
+data Result = Num Double | Func String ([Result] -> Result) | Err String
+
+instance Show Result where
+  show (Num n) = show n
+  show (Err e) = "Error: " ++ e
+  show (Func name f) = name
+
+instance Eq Result where
+  (==) (Num a) (Num b) = a == b
+  (==) (Err a) (Err b) = a == b
+  (==) (Func a _) (Func b _) = a == b
 
 data Context = Context {
-  globals :: Map String ContextVar,
-  locals :: Map String ContextVar
+  globals :: Map String Result,
+  locals :: Map String Result
 }
 
-getVar :: Context -> String -> Maybe ContextVar
-getVar ctx key = (listToMaybe . Prelude.take 1 . catMaybes) [Data.Map.lookup key (locals ctx), Data.Map.lookup key (globals ctx)]
-
-evalVar :: Context -> String -> Result
-evalVar ctx key = e (getVar ctx key) where
-  e Nothing = Error ("'" ++ key ++ "': no such variable")
-  e (Just(Constant r)) = r
-  e _ = Error ("'" ++ key ++ "': not a variable")
-
-evalFunc :: Context -> String -> [Result] -> Result
-evalFunc ctx key args = e (getVar ctx key) where
-  e Nothing = Error ("'" ++ key ++ "': no such variable")
-  e (Just(Constant _)) = Error ("'" ++ key ++ "': not a function")
-  e (Just(Callable fn)) = fn args
-
-data Result = Number Double | Error String deriving(Show, Eq)
+getVar :: Context -> String -> Result
+getVar ctx key = case Data.Map.lookup key (locals ctx) of
+  Just r -> r
+  Nothing -> case Data.Map.lookup key (globals ctx) of
+    Just r -> r
+    Nothing -> Err ("'" ++ key ++ "': no such variable")
 
 applyU :: (Double -> Double) -> Result -> Result
-applyU f (Error s) = Error s
-applyU f (Number n) = Number (f n)
+applyU f (Err s) = Err s
+applyU f (Func _ _) = Err "Can't apply to function"
+applyU f (Num n) = Num (f n)
 
 applyB :: (Double -> Double -> Double) -> Result -> Result -> Result
-applyB f (Error s) _ = Error s
-applyB f _ (Error s) = Error s
-applyB f (Number x) (Number y) = Number (f x y)
+applyB f (Num x) (Num y) = Num (f x y)
+applyB f (Err s) _ = Err s
+applyB f _ (Err s) = Err s
+applyB f (Func _ _) _ = Err "Can't apply to function"
+apppyB f x (Func n fn) = applyB f (Func n fn) x
 
 class Evaluator a where
   evaluate :: a -> Context -> Result
 
 instance Evaluator Function where
   evaluate (Function name args) ctx =
-    let eargs = fmap (\x -> evaluate x ctx) args
-    in evalFunc ctx name eargs
+    case getVar ctx name of
+      (Func _ f) -> let eargs = fmap (\x -> evaluate x ctx) args
+                     in f eargs
+      (Err e) -> Err e
+      (Num _) -> Err ("'" ++ name ++ "': not a function")
 
 instance Evaluator Variable where
-  evaluate (NumberVar n) _ = Number n
-  evaluate (IdentifierVar s) ctx = evalVar ctx s
+  evaluate (NumberVar n) _ = Num n
+  evaluate (IdentifierVar s) ctx = getVar ctx s
   evaluate (FunctionVar f) ctx = evaluate f ctx
 
 instance Evaluator Factor where
@@ -77,4 +83,4 @@ instance Evaluator Expression where
 
 instance Evaluator Statement where
   evaluate (EStatement e) ctx = evaluate e ctx
-  evaluate _ _ = Error "todo"
+  evaluate _ _ = Err "todo"

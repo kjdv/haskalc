@@ -6,8 +6,8 @@ import Parser (parse, parseStatement)
 import Data.Map (fromList)
 
 defaultContext = Context {
-  globals=fromList [("b", Constant (Number 4.0)), ("shadow", Constant (Number 1.0))],
-  locals=fromList  [("a", Constant (Number 2.0)), ("shadow", Constant (Number 3.0))]
+  globals=fromList [("b", Num 4.0), ("shadow", Num 5.0)],
+  locals=fromList  [("a", Num 2.0), ("shadow", Num 3.0)]
 }
 
 run :: Context -> String -> Maybe Result
@@ -16,10 +16,7 @@ run ctx s = do
   (stat,_) <- parse parseStatement toks
   Just (evaluate stat ctx)
 
-display :: Maybe Result -> String
-display Nothing = ""
-display (Just (Number n)) = show n
-display (Just (Error e)) = "Error: " ++ e
-
 runSingle :: String -> String
-runSingle s = display (run defaultContext s)
+runSingle s = case (run defaultContext s) of
+  Nothing -> ""
+  Just r -> show r
