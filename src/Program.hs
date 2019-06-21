@@ -12,9 +12,11 @@ defaultContext = Context {
 
 run :: Context -> String -> Maybe Result
 run ctx s = do
-  let toks = tokenize s
-  (stat,_) <- parse parseStatement toks
-  Just (evaluate stat ctx)
+  case tokenize s of
+    [] -> Nothing
+    toks -> case parse parseStatement toks of
+      Nothing -> Just (Err "no valid statement")
+      Just (stat, _) -> Just (evaluate stat ctx)
 
 runSingle :: String -> String
 runSingle s = case (run defaultContext s) of

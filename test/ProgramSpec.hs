@@ -11,6 +11,8 @@ programSpec = do
     it "gives nothing on the empty string" $ do
       srun "" `shouldBe` Nothing
       srun "  " `shouldBe` Nothing
+    it "prints an error on invalid statements" $ do
+      srun "2a" `shouldBe` Just (Err ("no valid statement"))
     it "prints out simple numbers" $ do
       srun "2" `shouldBe` Just (Num 2.0)
     it "does simple binary operations" $ do
