@@ -106,3 +106,11 @@ parserSpec = do
         parse parseVariable [Identifier "x", Open, Close] `shouldBe` Just (FunctionVar (Function "x" []), [])
         parse parseVariable [Identifier "x", Open, Identifier "y", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y"]), [])
         parse parseVariable [Identifier "x", Open, Identifier "y", Comma, Identifier "z", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y", EString "z"]), [])
+
+    describe "factors" $ do
+      it "parses a variable" $ do
+        parse parseFactor [Number 1.0] `shouldBe` Just (VarFactor (NumberVar 1.0), [])
+      it "parses an expression" $ do
+        parse parseFactor [Open, Identifier "x", Close] `shouldBe` Just (ExpFactor (EString "x"), [])
+      it "parses a unary operator" $ do
+        parse parseFactor [Minus, Number 1.0] `shouldBe` Just (UFactor UMinusOp (VarFactor (NumberVar 1.0)), [])

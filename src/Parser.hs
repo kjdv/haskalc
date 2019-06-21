@@ -96,7 +96,7 @@ maybeTransform p f = Parser mt where
 program = (assignment | expression) EOF
 assignment = decleration '=' expression
 expression = term ('+' term | '-' term)*
-term = factor ('^' ufactor | '*' ufactor | '/' ufactor)*
+term = factor ('^' factor | '*' factor | '/' factor)*
 factor = '-' factor | (variable | '(' expression ')')
 
 variable = function | identifier | number
@@ -110,9 +110,12 @@ variable_decleration = identifier
 
 data Expression = EString String deriving (Show, Eq) -- todo
 data Term = TString String deriving (Show, Eq) -- todo
-data Factor = FString  String deriving (Show, Eq) -- todo
+data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq) -- todo
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
+
+data Unop = UMinusOp deriving (Show, Eq)
+data Binop = PowerOp | TimesOp | DivideOp | PlusOp | MinusOp deriving (Show, Eq)
 
 parseNumber :: Parser Double
 parseNumber = maybeTransform item extractNumber
@@ -127,7 +130,17 @@ parseTerm :: Parser Term
 parseTerm = transform parseIdentifier TString
 
 parseFactor :: Parser Factor
-parseFactor = transform parseIdentifier FString
+parseFactor = uparse `choice` vparse `choice` eparse where
+  uparse = do
+    symbol Minus
+    f <- parseFactor
+    return (UFactor UMinusOp f)
+  vparse = transform parseVariable VarFactor
+  eparse = do
+    symbol Open
+    e <- parseExpression
+    symbol Close
+    return (ExpFactor e)
 
 parseVariable :: Parser Variable
 parseVariable =
