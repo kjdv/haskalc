@@ -109,7 +109,7 @@ variable_decleration = identifier
 -}
 
 data Expression = EString String deriving (Show, Eq) -- todo
-data Term = TString String deriving (Show, Eq) -- todo
+data Term = Term Factor [Binop Factor] deriving (Show, Eq) -- todo
 data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq) -- todo
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
