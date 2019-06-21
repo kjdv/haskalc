@@ -18,7 +18,13 @@ evalVar :: Context -> String -> Result
 evalVar ctx key = e (getVar ctx key) where
   e Nothing = Error ("'" ++ key ++ "': no such variable")
   e (Just(Constant r)) = r
-  e _ = error "todo: implement me"
+  e _ = Error ("'" ++ key ++ "': not a variable")
+
+evalFunc :: Context -> String -> [Result] -> Result
+evalFunc ctx key args = e (getVar ctx key) where
+  e Nothing = Error ("'" ++ key ++ "': no such variable")
+  e (Just(Constant _)) = Error ("'" ++ key ++ "': not a function")
+  e (Just(Callable fn)) = fn args
 
 data Result = Number Double | Error String deriving(Show, Eq)
 
@@ -34,17 +40,22 @@ applyB f (Number x) (Number y) = Number (f x y)
 class Evaluator a where
   evaluate :: a -> Context -> Result
 
+instance Evaluator Function where
+  evaluate (Function name args) ctx =
+    let eargs = fmap (\x -> evaluate x ctx) args
+    in evalFunc ctx name eargs
+
 instance Evaluator Variable where
   evaluate (NumberVar n) _ = Number n
   evaluate (IdentifierVar s) ctx = evalVar ctx s
-  evaluate v _ = Error ("evaluator not implemented yet") -- todo
+  evaluate (FunctionVar f) ctx = evaluate f ctx
 
 instance Evaluator Factor where
   evaluate (UFactor u f) ctx = applyU (o u) (evaluate f ctx) where
     o UMinusOp = (0-)
   evaluate (VarFactor v) ctx = evaluate v ctx
   evaluate (ExpFactor e) ctx = evaluate e ctx
-  
+
 instance Evaluator Term where
   evaluate (Term f fs) ctx = foldl combine (evaluate f ctx) fs where
     combine :: Result -> (Binop, Factor) -> Result

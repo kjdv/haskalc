@@ -27,3 +27,8 @@ programSpec = do
     it "honours parenthesis" $ do
       srun "(1 + 2) * 3" `shouldBe` Just (Number 9.0)
       srun "2 - (3 + 4)" `shouldBe` Just (Number (-5.0))
+    it "supports unary operators" $ do
+      srun "-1" `shouldBe` Just (Number (-1))
+      srun "--1" `shouldBe` Just (Number 1)
+      srun "-(2+3)" `shouldBe` Just (Number (-5))
+      srun "-2 * -3" `shouldBe` Just (Number 6)
