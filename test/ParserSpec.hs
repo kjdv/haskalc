@@ -156,3 +156,10 @@ parserSpec = do
             ])) [
               (TimesOp,VarFactor (NumberVar 3.0))
             ]) [],[])
+
+    describe "statements"  $ do
+      it "accepts a single expression" $ do
+        parse parseStatement [Number 1.0] `shouldBe`
+          Just (EStatement (Expression (Term (VarFactor (NumberVar 1.0)) []) []),[])
+      it "rejects if extra tokens exists" $ do
+        parse parseStatement [Number 1.0, Number 2.0] `shouldBe` Nothing

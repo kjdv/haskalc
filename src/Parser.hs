@@ -93,7 +93,7 @@ maybeTransform p f = Parser mt where
 
 {- Grammar:
 
-program = (assignment | expression) EOF
+statement = (assignment | expression) EOF
 assignment = decleration '=' expression
 expression = term ('+' term | '-' term)*
 term = factor ('^' factor | '*' factor | '/' factor)*
@@ -108,9 +108,11 @@ variable_decleration = identifier
 
 -}
 
-data Expression = Expression Term [(Binop, Term)] deriving (Show, Eq) -- todo
-data Term = Term Factor [(Binop, Factor)] deriving (Show, Eq) -- todo
-data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq) -- todo
+data Statement = AStatement Assignment | EStatement Expression deriving (Show, Eq)
+data Assignment = Assignment deriving (Show, Eq)
+data Expression = Expression Term [(Binop, Term)] deriving (Show, Eq)
+data Term = Term Factor [(Binop, Factor)] deriving (Show, Eq)
+data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq)
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
 
@@ -122,6 +124,15 @@ parseNumber = maybeTransform item extractNumber
 
 parseIdentifier :: Parser String
 parseIdentifier = maybeTransform item extractIdentifier
+
+parseStatement :: Parser Statement
+parseStatement = do -- todo: assignments
+  e <- parseExpression
+  end
+  return (EStatement e)
+
+parseAssignment :: Parser Assignment
+parseAssignment = empty
 
 parseExpression :: Parser Expression
 parseExpression = do
