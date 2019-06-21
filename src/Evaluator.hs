@@ -20,18 +20,15 @@ evalVar ctx key = e (getVar ctx key) where
   e (Just(Constant r)) = r
   e _ = error "todo: implement me"
 
-data Result = Empty | Number Double | Error String deriving(Show, Eq)
+data Result = Number Double | Error String deriving(Show, Eq)
 
 applyU :: (Double -> Double) -> Result -> Result
-applyU f Empty = Empty
 applyU f (Error s) = Error s
 applyU f (Number n) = Number (f n)
 
 applyB :: (Double -> Double -> Double) -> Result -> Result -> Result
 applyB f (Error s) _ = Error s
 applyB f _ (Error s) = Error s
-applyB f Empty _ = Empty
-applyB f _ Empty = Empty
 applyB f (Number x) (Number y) = Number (f x y)
 
 class Evaluator a where
@@ -69,4 +66,4 @@ instance Evaluator Expression where
 
 instance Evaluator Statement where
   evaluate (EStatement e) ctx = evaluate e ctx
-  evaluate _ _ = Empty -- todo
+  evaluate _ _ = Error "todo"

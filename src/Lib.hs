@@ -1,7 +1,8 @@
 module Lib
-    ( someFunc
+    ( readEvalPrintLoop
     ) where
 
+import Program
 import System.Console.Haskeline
 
 readEvalPrintLoop :: IO ()
@@ -12,9 +13,5 @@ readEvalPrintLoop = runInputT defaultSettings loop
       minput <- getInputLine ">> "
       case minput of
         Nothing -> return ()
-        Just "quit" -> return ()
-        Just input -> do outputStrLn $ "Input was: " ++ input
+        Just input -> do outputStrLn $ runSingle input
                          loop
-
-someFunc :: IO ()
-someFunc = readEvalPrintLoop
