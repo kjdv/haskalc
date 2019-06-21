@@ -32,7 +32,7 @@ tokenize (',':xs) = Comma : tokenize xs
 
 tokenize (x:xs)
   | isSpace(x) = tokenize xs
-  | isAlpha(x) = let (alphas,rest) = break (not . isAlpha) xs in Identifier (x:alphas) : tokenize rest
+  | isAlpha(x) = let (alphas,rest) = break (not . isAlphaNum) xs in Identifier (x:alphas) : tokenize rest
   | isDigit(x) = do
       let results = reads (x:xs)
       let (num,rest) = head results

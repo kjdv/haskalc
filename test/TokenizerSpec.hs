@@ -16,6 +16,8 @@ tokenizerSpec = do
     it "recognizes identifiers" $ do
       tokenize "a" `shouldBe` [Identifier "a"]
       tokenize "abc" `shouldBe` [Identifier "abc"]
+      tokenize "a1" `shouldBe` [Identifier "a1"]
+      tokenize "1a" `shouldBe` [Number 1.0, Identifier "a"]
 
     it "recognizes numbers" $ do
       tokenize "1" `shouldBe` [Number 1.0]
@@ -24,7 +26,7 @@ tokenizerSpec = do
 
     it "splits tokens" $ do
       tokenize "+ -" `shouldBe` [Plus,Minus]
-      tokenize "1abc2 def ^" `shouldBe` [Number 1.0, Identifier "abc", Number 2.0, Identifier "def", Power]
+      tokenize "1abc2+ def ^" `shouldBe` [Number 1.0, Identifier "abc2", Plus, Identifier "def", Power]
 
     it "fails on bad tokens" $ do
       evaluate (tokenize "£") `shouldThrow` errorCall "unrecognized token '£'"
