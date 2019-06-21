@@ -26,6 +26,7 @@ library:
   source-dirs: src
   dependencies:
   - haskeline
+  - containers
 
 executables:
   haskalc-exe:
@@ -49,3 +50,4 @@ tests:
     dependencies:
     - haskalc
     - hspec
+    - containers
