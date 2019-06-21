@@ -104,14 +104,17 @@ parserSpec = do
         parse parseVariable [Number 1.0] `shouldBe` Just (NumberVar 1.0, [])
       it "parses functions" $ do
         parse parseVariable [Identifier "x", Open, Close] `shouldBe` Just (FunctionVar (Function "x" []), [])
-        parse parseVariable [Identifier "x", Open, Identifier "y", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y"]), [])
-        parse parseVariable [Identifier "x", Open, Identifier "y", Comma, Identifier "z", Close] `shouldBe` Just (FunctionVar (Function "x" [EString "y", EString "z"]), [])
+        parse parseVariable [Identifier "x", Open, Identifier "y", Close] `shouldBe`
+          Just (FunctionVar (Function "x" [Expression (Term (VarFactor (IdentifierVar "y")) []) []]),[])
+        parse parseVariable [Identifier "x", Open, Identifier "y", Comma, Identifier "z", Close] `shouldBe`
+          Just (FunctionVar (Function "x" [Expression (Term (VarFactor (IdentifierVar "y")) []) [],Expression (Term (VarFactor (IdentifierVar "z")) []) []]),[])
 
     describe "factors" $ do
       it "parses a variable" $ do
         parse parseFactor [Number 1.0] `shouldBe` Just (VarFactor (NumberVar 1.0), [])
       it "parses an expression" $ do
-        parse parseFactor [Open, Identifier "x", Close] `shouldBe` Just (ExpFactor (EString "x"), [])
+        parse parseFactor [Open, Identifier "x", Close] `shouldBe`
+          Just (ExpFactor (Expression (Term (VarFactor (IdentifierVar "x")) []) []),[])
       it "parses a unary operator" $ do
         parse parseFactor [Minus, Number 1.0] `shouldBe` Just (UFactor UMinusOp (VarFactor (NumberVar 1.0)), [])
 
@@ -125,3 +128,31 @@ parserSpec = do
             (TimesOp, VarFactor (NumberVar 3.0)),
             (DivideOp, VarFactor (NumberVar 4.0))
           ], [])
+
+    describe "expressions" $ do
+      it "parses a variable" $ do
+        parse parseExpression [Number 1.0] `shouldBe`
+          Just (Expression (Term (VarFactor (NumberVar 1.0)) []) [],[])
+      it "chains operators" $ do
+        parse parseExpression [Number 1.0, Plus, Number 2.0, Minus, Number 3.0] `shouldBe`
+          Just (Expression (Term (VarFactor (NumberVar 1.0)) []) [
+            (PlusOp, Term (VarFactor (NumberVar 2.0)) []),
+            (MinusOp, Term (VarFactor (NumberVar 3.0)) [])
+          ],[])
+      it "prioritizes times (and like) over plus (and like)" $ do
+        parse parseExpression [Number 1.0, Plus, Number 2.0, Times, Number 3.0] `shouldBe`
+          Just (Expression (Term (VarFactor (NumberVar 1.0)) []) [
+            (PlusOp,
+              Term (VarFactor (NumberVar 2.0)) [
+              (TimesOp, VarFactor (NumberVar 3.0))
+            ])
+          ],[])
+      it "prioritizes parenthized terms" $ do
+        parse parseExpression [Open, Number 1.0, Plus, Number 2.0, Close, Times, Number 3.0] `shouldBe`
+          Just (Expression (Term (ExpFactor
+            (Expression
+              (Term (VarFactor (NumberVar 1.0)) []) [
+              (PlusOp,Term (VarFactor (NumberVar 2.0)) [])
+            ])) [
+              (TimesOp,VarFactor (NumberVar 3.0))
+            ]) [],[])

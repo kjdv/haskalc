@@ -108,8 +108,8 @@ variable_decleration = identifier
 
 -}
 
-data Expression = EString String deriving (Show, Eq) -- todo
-data Term = Term Factor [(Binop,Factor)] deriving (Show, Eq) -- todo
+data Expression = Expression Term [(Binop, Term)] deriving (Show, Eq) -- todo
+data Term = Term Factor [(Binop, Factor)] deriving (Show, Eq) -- todo
 data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq) -- todo
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
@@ -124,13 +124,23 @@ parseIdentifier :: Parser String
 parseIdentifier = maybeTransform item extractIdentifier
 
 parseExpression :: Parser Expression
-parseExpression = transform parseIdentifier EString
+parseExpression = do
+  t <- parseTerm
+  ts <- zeroOrMore bparse
+  return (Expression t ts) where
+    bparse = do
+      o <- oparse
+      t <- parseTerm
+      return (o,t)
+    oparse =
+      transform (symbol Plus) (\_ -> PlusOp) `choice`
+      transform (symbol Minus) (\_ -> MinusOp)
 
 parseTerm :: Parser Term
 parseTerm = do
   f <- parseFactor
-  s <- zeroOrMore bparse
-  return (Term f s) where
+  fs <- zeroOrMore bparse
+  return (Term f fs) where
     bparse = do
       o <- oparse
       f <- parseFactor
