@@ -34,6 +34,9 @@ programSpec = do
       srun "--1" `shouldBe` Just (Num 1)
       srun "-(2+3)" `shouldBe` Just (Num (-5))
       srun "-2 * -3" `shouldBe` Just (Num 6)
+    it "does power before multiplications" $ do
+      srun "(2 * 10) ^ 2" `shouldBe` Just (Num 400)
+      srun "2 * 10 ^ 2" `shouldBe` Just (Num 200)
     it "has function calls" $ do
       srun "exp (2)" `shouldBe` Just (Num (exp 2))
     it "checks the number of arguments" $ do
