@@ -22,6 +22,6 @@ evaluatorSpec = do
       evaluate (IdentifierVar "b") ctx `shouldBe` Num 4.0
       evaluate (IdentifierVar "shadow") ctx `shouldBe` Num 3.0
     it "evaluates functions" $ do
-      let e1 = Expression (Term (VarFactor (NumberVar 1.0)) []) []
-      let e2 = Expression (Term (VarFactor (NumberVar 2.0)) []) []
+      let e1 = Expression (Term (PTerm (VarFactor (NumberVar 1.0)) []) []) []
+      let e2 = Expression (Term (PTerm (VarFactor (NumberVar 2.0)) []) []) []
       evaluate (FunctionVar (Function "sum" [e1, e2])) ctx `shouldBe` Num 3.0

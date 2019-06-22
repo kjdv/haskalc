@@ -96,7 +96,8 @@ maybeTransform p f = Parser mt where
 statement = (assignment | expression) EOF
 assignment = decleration '=' expression
 expression = term ('+' term | '-' term)*
-term = factor ('^' factor | '*' factor | '/' factor)*
+term = pterm ('*' pterm | '/' pterm)*
+pterm = factor ('^' factor)*
 factor = '-' factor | (variable | '(' expression ')')
 
 variable = function | identifier | number
@@ -111,7 +112,8 @@ variable_decleration = identifier
 data Statement = AStatement Assignment | EStatement Expression deriving (Show, Eq)
 data Assignment = Assignment deriving (Show, Eq)
 data Expression = Expression Term [(Binop, Term)] deriving (Show, Eq)
-data Term = Term Factor [(Binop, Factor)] deriving (Show, Eq)
+data Term = Term PTerm [(Binop, PTerm)] deriving (Show, Eq)
+data PTerm = PTerm Factor [(Binop, Factor)] deriving (Show, Eq)
 data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq)
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
@@ -149,17 +151,28 @@ parseExpression = do
 
 parseTerm :: Parser Term
 parseTerm = do
+  p <- parsePTerm
+  ps <- zeroOrMore bparse
+  return (Term p ps) where
+    bparse = do
+      o <- oparse
+      p <- parsePTerm
+      return (o,p)
+    oparse =
+      transform (symbol Times) (\_ -> TimesOp) `choice`
+      transform (symbol Divide) (\_ -> DivideOp)
+
+parsePTerm :: Parser PTerm
+parsePTerm = do
   f <- parseFactor
   fs <- zeroOrMore bparse
-  return (Term f fs) where
+  return (PTerm f fs) where
     bparse = do
       o <- oparse
       f <- parseFactor
       return (o,f)
     oparse =
-      transform (symbol Power) (\_ -> PowerOp) `choice`
-      transform (symbol Times) (\_ -> TimesOp) `choice`
-      transform (symbol Divide) (\_ -> DivideOp)
+      transform (symbol Power) (\_ -> PowerOp)
 
 parseFactor :: Parser Factor
 parseFactor = uparse `choice` vparse `choice` eparse where

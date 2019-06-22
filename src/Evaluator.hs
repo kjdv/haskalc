@@ -62,13 +62,20 @@ instance Evaluator Factor where
   evaluate (VarFactor v) ctx = evaluate v ctx
   evaluate (ExpFactor e) ctx = evaluate e ctx
 
-instance Evaluator Term where
-  evaluate (Term f fs) ctx = foldl combine (evaluate f ctx) fs where
+instance Evaluator PTerm where
+  evaluate (PTerm f fs) ctx = foldl combine (evaluate f ctx) fs where
     combine :: Result -> (Binop, Factor) -> Result
     combine acc (o, f) = let fr = evaluate f ctx
                           in applyB (op o) acc fr
     op :: Binop -> (Double -> Double -> Double)
     op PowerOp = (**)
+
+instance Evaluator Term where
+  evaluate (Term p ps) ctx = foldl combine (evaluate p ctx) ps where
+    combine :: Result -> (Binop, PTerm) -> Result
+    combine acc (o, p) = let pr = evaluate p ctx
+                          in applyB (op o) acc pr
+    op :: Binop -> (Double -> Double -> Double)
     op TimesOp = (*)
     op DivideOp = (/)
 
