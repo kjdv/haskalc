@@ -5,9 +5,38 @@ import Tokenizer (tokenize)
 import Parser (parse, parseStatement)
 import Data.Map (fromList)
 
+wrap1 :: (Double -> Double ) -> ([Result] -> Result)
+wrap1 f = \args -> case checked args of
+  (Num x) -> Num (f x)
+  x -> x
+  where
+    checked [Num x] = Num x
+    checked [x] = x
+    checked _ = Err ("function takes exactly 1 argument")
+
 defaultContext = Context {
-  globals=fromList [("b", Num 4.0), ("shadow", Num 5.0)],
-  locals=fromList  [("a", Num 2.0), ("shadow", Num 3.0)]
+  globals=fromList [
+    ("e", Num (exp 1)),
+    ("pi", Num pi),
+    ("exp", Func "exp(x)" (wrap1 exp)),
+    ("sqrt", Func "sqrt(x)" (wrap1 sqrt)),
+    ("log", Func "log(x)" (wrap1 log)),
+    ("log10", Func "log10(x)" (wrap1 (logBase 10))),
+    ("log2", Func "log2(x)" (wrap1 (logBase 2))),
+    ("sin", Func "sin(x)" (wrap1 sin)),
+    ("cos", Func "cos(x)" (wrap1 cos)),
+    ("tan", Func "tan(x)" (wrap1 tan)),
+    ("asin", Func "asin(x)" (wrap1 asin)),
+    ("acos", Func "acos(x)" (wrap1 acos)),
+    ("atan", Func "atan(x)" (wrap1 atan)),
+    ("sinh", Func "sinh(x)" (wrap1 sinh)),
+    ("cosh", Func "cosh(x)" (wrap1 cosh)),
+    ("tanh", Func "tanh(x)" (wrap1 tanh)),
+    ("asinh", Func "asinh(x)" (wrap1 asinh)),
+    ("acosh", Func "acosh(x)" (wrap1 acosh)),
+    ("atanh", Func "atanh(x)" (wrap1 atanh))
+  ],
+  locals=fromList  []
 }
 
 run :: Context -> String -> Maybe Result

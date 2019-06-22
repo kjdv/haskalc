@@ -34,3 +34,8 @@ programSpec = do
       srun "--1" `shouldBe` Just (Num 1)
       srun "-(2+3)" `shouldBe` Just (Num (-5))
       srun "-2 * -3" `shouldBe` Just (Num 6)
+    it "has function calls" $ do
+      srun "exp (2)" `shouldBe` Just (Num (exp 2))
+    it "checks the number of arguments" $ do
+      srun "exp ()" `shouldBe` Just (Err ("function takes exactly 1 argument"))
+      srun "exp (1, 2)" `shouldBe` Just (Err ("function takes exactly 1 argument"))
