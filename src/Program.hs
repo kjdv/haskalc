@@ -7,10 +7,8 @@ import Data.Map (fromList)
 
 wrap1 :: (Double -> Double ) -> ([Result] -> Result)
 wrap1 f = \args -> case checked args of
-  (Num x) -> Num (f x)
-  x -> x
+  x -> applyU f x
   where
-    checked [Num x] = Num x
     checked [x] = x
     checked _ = Err ("function takes exactly 1 argument")
 
