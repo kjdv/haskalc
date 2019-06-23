@@ -14,6 +14,6 @@ readEvalPrintLoop = runInputT defaultSettings (loop program)
       case minput of
         Nothing -> return ()
         Just input -> do
-          let (s, p) = runProgram prog input
+          let (s, p) = run prog input
           outputStrLn s
           loop p

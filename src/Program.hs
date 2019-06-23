@@ -1,4 +1,4 @@
-module Program where
+module Program (Program, program, run) where
 
 import Evaluator
 import Tokenizer (tokenize)
@@ -37,8 +37,8 @@ defaultContext = Context {
   locals=fromList  []
 }
 
-run :: Context -> String -> Maybe Result
-run ctx s = do
+doRun :: Context -> String -> Maybe Result
+doRun ctx s = do
   case tokenize s of
     [] -> Nothing
     toks -> case parse parseStatement toks of
@@ -46,7 +46,7 @@ run ctx s = do
       Just (stat, _) -> Just (evaluate stat ctx)
 
 runStep :: Context -> String -> (String, Context)
-runStep ctx input = case run ctx input of
+runStep ctx input = case doRun ctx input of
   Nothing -> ("", ctx)
   Just r -> (show r, ctx)
 
@@ -58,5 +58,5 @@ program = Program (step defaultContext) where
   step ctx input = let (s, c) = runStep ctx input
                     in (s, Program (step c))
 
-runProgram :: Program -> String -> (String, Program)
-runProgram (Program p) input = p input
+run :: Program -> String -> (String, Program)
+run (Program p) input = p input
