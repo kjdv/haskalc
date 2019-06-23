@@ -6,12 +6,14 @@ import Program
 import System.Console.Haskeline
 
 readEvalPrintLoop :: IO ()
-readEvalPrintLoop = runInputT defaultSettings loop
+readEvalPrintLoop = runInputT defaultSettings (loop program)
   where
-    loop :: InputT IO ()
-    loop = do
+    loop :: Program -> InputT IO ()
+    loop prog = do
       minput <- getInputLine ">> "
       case minput of
         Nothing -> return ()
-        Just input -> do outputStrLn $ runSingle input
-                         loop
+        Just input -> do
+          let (s, p) = runProgram prog input
+          outputStrLn s
+          loop p

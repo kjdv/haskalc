@@ -49,3 +49,19 @@ runSingle :: String -> String
 runSingle s = case (run defaultContext s) of
   Nothing -> ""
   Just r -> show r
+
+runStep :: Int -> String -> (String, Int)
+runStep ctx input = case run defaultContext input of
+  Nothing -> (show ctx ++ ": ", ctx+1)
+  Just r -> (show ctx ++ ": " ++ show r, ctx +1)
+
+newtype Program = Program (String -> (String, Program))
+
+program :: Program
+program = Program (step 1) where
+  step :: Int -> String -> (String, Program)
+  step ctx input = let (s, c) = runStep ctx input
+                    in (s, Program (step c))
+
+runProgram :: Program -> String -> (String, Program)
+runProgram (Program p) input = p input
