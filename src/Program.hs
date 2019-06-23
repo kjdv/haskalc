@@ -5,8 +5,8 @@ import Tokenizer (tokenize)
 import Parser (parse, parseStatement)
 import Data.Map (fromList)
 
-wrap1 :: (Double -> Double ) -> ([Result] -> Result)
-wrap1 f = \args -> case checked args of
+wrap1 :: (Double -> Double ) -> (Context -> [Result] -> Result)
+wrap1 f = \ctx -> \args -> case checked args of
   x -> applyU f x
   where
     checked [x] = x

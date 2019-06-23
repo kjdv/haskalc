@@ -13,7 +13,7 @@ evaluatorSpec = do
                         ("shadow", Num 1.0)],
       locals=fromList  [("a", Num 2.0),
                         ("shadow", Num 3.0),
-                        ("sum", Func "sum(...)" (\xs -> Prelude.foldl (applyB (+)) (Num 0) xs))]
+                        ("sum", Func "sum(...)" (\ctx -> \xs -> Prelude.foldl (applyB (+)) (Num 0) xs))]
     }
     it "evaluates plain numbers" $ do
       evaluate (NumberVar 1.0) ctx `shouldBe` Num 1.0

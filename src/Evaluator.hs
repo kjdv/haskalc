@@ -4,7 +4,7 @@ import Parser
 import qualified Data.Map as M
 import Data.Maybe
 
-data Result = Num Double | Func String ([Result] -> Result) | Err String
+data Result = Num Double | Func String (Context -> [Result] -> Result) | Err String
 
 instance Show Result where
   show (Num n) = show n
@@ -47,7 +47,7 @@ instance Evaluator Function where
   evaluate (Function name args) ctx =
     case getVar ctx name of
       (Func _ f) -> let eargs = fmap (\x -> evaluate x ctx) args
-                     in f eargs
+                     in f ctx eargs
       (Err e) -> Err e
       (Num _) -> Err ("'" ++ name ++ "': not a function")
 
@@ -110,4 +110,8 @@ evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
   (f, c)
   where
     makeFunc :: String -> [String] -> Expression -> Result
-    makeFunc name args expr = Err("implement me")
+    makeFunc name args expr =
+      Func name actual where
+        actual :: Context -> [Result] -> Result
+        actual actx eargs = let locals = zip args eargs
+                             in evaluate expr Context{globals=globals actx, locals=M.fromList locals}
