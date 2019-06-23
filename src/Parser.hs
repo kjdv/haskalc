@@ -103,20 +103,21 @@ factor = '-' factor | (variable | '(' expression ')')
 variable = function | identifier | number
 function = identifier '(' expression (',' expression)* ')'
 
-decleration = function_decleration | variable_decleration
-function_decleration = identifier '(' identifier (',' identifier)* ')'
-variable_decleration = identifier
+declaration = function_declaration | variable_declaration
+function_declaration = identifier '(' identifier (',' identifier)* ')'
+variable_declaration = identifier
 
 -}
 
 data Statement = AStatement Assignment | EStatement Expression deriving (Show, Eq)
-data Assignment = Assignment deriving (Show, Eq)
+data Assignment = Assignment Declaration Expression deriving (Show, Eq)
 data Expression = Expression Term [(Binop, Term)] deriving (Show, Eq)
 data Term = Term PTerm [(Binop, PTerm)] deriving (Show, Eq)
 data PTerm = PTerm Factor [(Binop, Factor)] deriving (Show, Eq)
 data Factor = UFactor Unop Factor | VarFactor Variable | ExpFactor Expression deriving (Show, Eq)
 data Variable = FunctionVar Function | IdentifierVar String | NumberVar Double deriving (Show, Eq)
 data Function = Function String [Expression] deriving (Show, Eq)
+data Declaration = FunctionDecl String [String] | VariableDecl String deriving (Show, Eq)
 
 data Unop = UMinusOp deriving (Show, Eq)
 data Binop = PowerOp | TimesOp | DivideOp | PlusOp | MinusOp deriving (Show, Eq)
@@ -128,13 +129,22 @@ parseIdentifier :: Parser String
 parseIdentifier = maybeTransform item extractIdentifier
 
 parseStatement :: Parser Statement
-parseStatement = do -- todo: assignments
-  e <- parseExpression
-  end
-  return (EStatement e)
+parseStatement = choice aparse eparse where
+  aparse = do
+    a <- parseAssignment
+    end
+    return (AStatement a)
+  eparse = do 
+    e <- parseExpression
+    end
+    return (EStatement e)
 
 parseAssignment :: Parser Assignment
-parseAssignment = empty
+parseAssignment = do
+  decl <- parseDeclaration
+  symbol Equals
+  expr <- parseExpression
+  return (Assignment decl expr)
 
 parseExpression :: Parser Expression
 parseExpression = do
@@ -200,3 +210,13 @@ parseFunction = do
   args <- zeroOrMoreSep parseExpression (symbol Comma)
   symbol Close
   return (Function name args)
+
+parseDeclaration :: Parser Declaration
+parseDeclaration = choice fparse vparse where
+  fparse = do
+    name <- parseIdentifier
+    symbol Open
+    args <- zeroOrMoreSep parseIdentifier (symbol Comma)
+    symbol Close
+    return (FunctionDecl name args)
+  vparse = transform parseIdentifier VariableDecl

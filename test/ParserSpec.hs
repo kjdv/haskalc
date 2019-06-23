@@ -159,3 +159,15 @@ parserSpec = do
           Just (EStatement (Expression (Term (PTerm (VarFactor (NumberVar 1.0)) []) []) []),[])
       it "rejects if extra tokens exists" $ do
         parse parseStatement [Number 1.0, Number 2.0] `shouldBe` Nothing
+
+    describe "assignments" $ do
+      let expr = [Number 1.0]
+      let parsedExpr = Expression (Term (PTerm (VarFactor (NumberVar 1.0)) []) []) []
+      it "does variable assignments" $ do
+        parse parseStatement ([Identifier "a", Equals] ++ expr) `shouldBe`
+          Just (AStatement (Assignment (VariableDecl "a") parsedExpr), [])
+      it "does function assignments" $ do
+        parse parseStatement ([Identifier "a", Open, Close, Equals] ++ expr) `shouldBe`
+          Just (AStatement (Assignment (FunctionDecl "a" []) parsedExpr), [])
+        parse parseStatement ([Identifier "a", Open, Identifier "b", Comma, Identifier "c", Close, Equals] ++ expr) `shouldBe`
+          Just (AStatement (Assignment (FunctionDecl "a" ["b", "c"]) parsedExpr), [])
