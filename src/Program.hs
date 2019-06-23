@@ -45,21 +45,16 @@ run ctx s = do
       Nothing -> Just (Err "no valid statement")
       Just (stat, _) -> Just (evaluate stat ctx)
 
-runSingle :: String -> String
-runSingle s = case (run defaultContext s) of
-  Nothing -> ""
-  Just r -> show r
-
-runStep :: Int -> String -> (String, Int)
-runStep ctx input = case run defaultContext input of
-  Nothing -> (show ctx ++ ": ", ctx+1)
-  Just r -> (show ctx ++ ": " ++ show r, ctx +1)
+runStep :: Context -> String -> (String, Context)
+runStep ctx input = case run ctx input of
+  Nothing -> ("", ctx)
+  Just r -> (show r, ctx)
 
 newtype Program = Program (String -> (String, Program))
 
 program :: Program
-program = Program (step 1) where
-  step :: Int -> String -> (String, Program)
+program = Program (step defaultContext) where
+  step :: Context -> String -> (String, Program)
   step ctx input = let (s, c) = runStep ctx input
                     in (s, Program (step c))
 
