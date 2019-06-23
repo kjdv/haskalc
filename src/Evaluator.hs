@@ -1,7 +1,7 @@
 module Evaluator where
 
 import Parser
-import Data.Map (Map, lookup)
+import qualified Data.Map as M
 import Data.Maybe
 
 data Result = Num Double | Func String ([Result] -> Result) | Err String
@@ -17,14 +17,14 @@ instance Eq Result where
   (==) (Func a _) (Func b _) = a == b
 
 data Context = Context {
-  globals :: Map String Result,
-  locals :: Map String Result
+  globals :: M.Map String Result,
+  locals :: M.Map String Result
 }
 
 getVar :: Context -> String -> Result
-getVar ctx key = case Data.Map.lookup key (locals ctx) of
+getVar ctx key = case M.lookup key (locals ctx) of
   Just r -> r
-  Nothing -> case Data.Map.lookup key (globals ctx) of
+  Nothing -> case M.lookup key (globals ctx) of
     Just r -> r
     Nothing -> Err ("'" ++ key ++ "': no such variable")
 
@@ -91,3 +91,23 @@ instance Evaluator Expression where
 instance Evaluator Statement where
   evaluate (EStatement e) ctx = evaluate e ctx
   evaluate _ _ = Err "todo"
+
+evaluateAndSet :: Statement -> Context -> (Result, Context)
+evaluateAndSet (EStatement e) ctx = (evaluate e ctx, ctx)
+evaluateAndSet (AStatement (Assignment (VariableDecl name) expr)) ctx = do
+  let v = evaluate expr ctx
+  let c = Context {
+    globals=M.insert name v (globals ctx),
+    locals=locals ctx
+  }
+  (v,  c)
+evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
+  let f = makeFunc name args expr
+  let c = Context {
+    globals=M.insert name f (globals ctx),
+    locals=locals ctx
+  }
+  (f, c)
+  where
+    makeFunc :: String -> [String] -> Expression -> Result
+    makeFunc name args expr = Err("implement me")

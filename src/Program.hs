@@ -37,19 +37,19 @@ defaultContext = Context {
   locals=fromList  []
 }
 
-doRun :: Context -> String -> Maybe Result
+doRun :: Context -> String -> Maybe (Result, Context)
 doRun ctx s = do
   case tokenize s of
-    Nothing -> Just (Err "invalid tokens")
+    Nothing -> Just (Err "invalid tokens", ctx)
     Just [] -> Nothing
     Just toks -> case parse parseStatement toks of
-      Nothing -> Just (Err "no valid statement")
-      Just (stat, _) -> Just (evaluate stat ctx)
+      Nothing -> Just (Err "no valid statement", ctx)
+      Just (stat, _) -> Just (evaluateAndSet stat ctx)
 
 runStep :: Context -> String -> (String, Context)
 runStep ctx input = case doRun ctx input of
   Nothing -> ("", ctx)
-  Just r -> (show r, ctx)
+  Just (r,c) -> (show r, c)
 
 newtype Program = Program (String -> (String, Program))
 

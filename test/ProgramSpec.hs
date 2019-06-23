@@ -4,6 +4,13 @@ import Test.Hspec
 import Program
 import Evaluator (Result(Num, Func, Err))
 
+-- run a series of statmentes
+mrun :: [String] -> [String]
+mrun input = doRun program input where
+  doRun :: Program -> [String] -> [String]
+  doRun _ [] = []
+  doRun p (s:ss) = let (o, p') = run p s in o : doRun p' ss
+
 programSpec :: Spec
 programSpec = do
   describe "statement execution" $ do
@@ -47,3 +54,10 @@ programSpec = do
       it "checks the number of arguments" $ do
         srun "exp ()" `shouldBe` "Error: function takes exactly 1 argument"
         srun "exp (1, 2)" `shouldBe` "Error: function takes exactly 1 argument"
+  describe "stateful program execution" $ do
+    describe "variable assignments" $ do
+      it "allows assigning a variable" $ do
+        mrun ["a=2", "a+1"] `shouldBe` ["2.0", "3.0"]
+      it "allows overriding existing variables" $ do
+        mrun ["pi", "pi=3", "pi"] `shouldBe` [show pi, "3.0", "3.0"]
+        mrun ["sin", "sin=1", "sin"] `shouldBe` ["sin(x)", "1.0", "1.0"]
