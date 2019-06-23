@@ -62,8 +62,8 @@ programSpec = do
         mrun ["pi", "pi=3", "pi"] `shouldBe` [show pi, "3.0", "3.0"]
         mrun ["sin", "sin=1", "sin"] `shouldBe` ["sin(x)", "1.0", "1.0"]
       it "allows creating functions" $ do
-        mrun ["f()=1.0", "f()"] `shouldBe` ["f", "1.0"]
+        mrun ["f()=1.0", "f()"] `shouldBe` ["f()", "1.0"]
       it "binds local variables to functions" $ do
-        mrun ["f(x,y) = x * y", "f(2, 3)"] `shouldBe` ["f", "6.0"]
+        mrun ["f(x,y) = x * y", "f(2, 3)"] `shouldBe` ["f(x,y)", "6.0"]
       it "can use global variables in functions" $ do
-        mrun ["f(x) = x + y", "y=1", "f(2)"] `shouldBe` ["f", "1.0", "3.0"]
+        mrun ["f(x) = x + y", "y=1", "f(2)"] `shouldBe` ["f(x)", "1.0", "3.0"]

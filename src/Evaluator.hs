@@ -3,6 +3,7 @@ module Evaluator where
 import Parser
 import qualified Data.Map as M
 import Data.Maybe
+import Data.List (intercalate)
 
 data Result = Num Double | Func String (Context -> [Result] -> Result) | Err String
 
@@ -111,7 +112,9 @@ evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
   where
     makeFunc :: String -> [String] -> Expression -> Result
     makeFunc name args expr =
-      Func name actual where
+      Func (makeName name args) actual where
         actual :: Context -> [Result] -> Result
         actual actx eargs = let locals = zip args eargs
                              in evaluate expr Context{globals=globals actx, locals=M.fromList locals}
+    makeName :: String -> [String] -> String
+    makeName name args = name ++ "(" ++ (intercalate "," args) ++ ")"
