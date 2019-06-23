@@ -14,6 +14,8 @@ programSpec = do
         srun "  " `shouldBe` ""
       it "prints an error on invalid statements" $ do
         srun "2a" `shouldBe` "Error: no valid statement"
+      it "prints an error on invalid tokens" $ do
+        srun "%" `shouldBe` "Error: invalid tokens"
       it "prints out simple numbers" $ do
         srun "2" `shouldBe` show 2.0
     describe "simple arithmetic" $ do

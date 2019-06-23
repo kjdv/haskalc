@@ -40,8 +40,9 @@ defaultContext = Context {
 doRun :: Context -> String -> Maybe Result
 doRun ctx s = do
   case tokenize s of
-    [] -> Nothing
-    toks -> case parse parseStatement toks of
+    Nothing -> Just (Err "invalid tokens")
+    Just [] -> Nothing
+    Just toks -> case parse parseStatement toks of
       Nothing -> Just (Err "no valid statement")
       Just (stat, _) -> Just (evaluate stat ctx)
 
