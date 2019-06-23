@@ -16,6 +16,7 @@ tokenizerSpec = do
     it "recognizes identifiers" $ do
       tokenize "a" `shouldBe` [Identifier "a"]
       tokenize "abc" `shouldBe` [Identifier "abc"]
+      tokenize "ab_c" `shouldBe` [Identifier "ab_c"]
       tokenize "a1" `shouldBe` [Identifier "a1"]
       tokenize "1a" `shouldBe` [Number 1.0, Identifier "a"]
 
