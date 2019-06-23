@@ -67,3 +67,5 @@ programSpec = do
         mrun ["f(x,y) = x * y", "f(2, 3)"] `shouldBe` ["f(x,y)", "6.0"]
       it "can use global variables in functions" $ do
         mrun ["f(x) = x + y", "y=1", "f(2)"] `shouldBe` ["f(x)", "1.0", "3.0"]
+      it "checks the number of arguments" $ do
+        mrun ["f()=1.0", "f(1)"] `shouldBe` ["f()", "Error: function 'f' takes 0 argument(s), 1 provided"]

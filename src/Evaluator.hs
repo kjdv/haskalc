@@ -114,7 +114,10 @@ evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
     makeFunc name args expr =
       Func (makeName name args) actual where
         actual :: Context -> [Result] -> Result
-        actual actx eargs = let locals = zip args eargs
-                             in evaluate expr Context{globals=globals actx, locals=M.fromList locals}
+        actual actx eargs =
+          if length args /= length eargs then
+            Err ("function '" ++ name ++ "' takes " ++ (show $ length args) ++ " argument(s), " ++ (show $ length eargs) ++ " provided")
+          else let locals = zip args eargs
+                in evaluate expr Context{globals=globals actx, locals=M.fromList locals}
     makeName :: String -> [String] -> String
     makeName name args = name ++ "(" ++ (intercalate "," args) ++ ")"
