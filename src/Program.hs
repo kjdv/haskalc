@@ -34,7 +34,8 @@ defaultContext = Context {
     ("acosh", Func "acosh(x)" (wrap1 acosh)),
     ("atanh", Func "atanh(x)" (wrap1 atanh))
   ],
-  locals=fromList  []
+  locals=fromList  [],
+  step=1
 }
 
 doRun :: Context -> String -> Maybe (Result, Context)
@@ -49,7 +50,7 @@ doRun ctx s = do
 runStep :: Context -> String -> (String, Context)
 runStep ctx input = case doRun ctx input of
   Nothing -> ("", ctx)
-  Just (r,c) -> (show r, c)
+  Just (r,c) -> ("[" ++ (show (step ctx)) ++ "] " ++ (show r), c)
 
 newtype Program = Program (String -> (String, Program))
 

@@ -10,7 +10,7 @@ readEvalPrintLoop = runInputT defaultSettings (loop program)
   where
     loop :: Program -> InputT IO ()
     loop prog = do
-      minput <- getInputLine ">> "
+      minput <- getInputLine ">>> "
       case minput of
         Nothing -> return ()
         Just input -> do

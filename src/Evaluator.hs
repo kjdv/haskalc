@@ -19,7 +19,8 @@ instance Eq Result where
 
 data Context = Context {
   globals :: M.Map String Result,
-  locals :: M.Map String Result
+  locals :: M.Map String Result,
+  step :: Int
 }
 
 getVar :: Context -> String -> Result
@@ -94,19 +95,31 @@ instance Evaluator Statement where
   evaluate _ _ = Err "todo"
 
 evaluateAndSet :: Statement -> Context -> (Result, Context)
-evaluateAndSet (EStatement e) ctx = (evaluate e ctx, ctx)
-evaluateAndSet (AStatement (Assignment (VariableDecl name) expr)) ctx = do
+evaluateAndSet stat ctx = do
+  let (r, c) = doEvaluateAndSet stat ctx
+  (r, Context {
+    globals=M.insert ("ans_" ++ (show (step c))) r (M.insert "ans" r (globals c)),
+    locals=locals c,
+    step=(step c) + 1
+  })
+
+
+doEvaluateAndSet :: Statement -> Context -> (Result, Context)
+doEvaluateAndSet (EStatement e) ctx = (evaluate e ctx, ctx)
+doEvaluateAndSet (AStatement (Assignment (VariableDecl name) expr)) ctx = do
   let v = evaluate expr ctx
   let c = Context {
     globals=M.insert name v (globals ctx),
-    locals=locals ctx
+    locals=locals ctx,
+    step=step ctx
   }
   (v,  c)
-evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
+doEvaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
   let f = makeFunc name args expr
   let c = Context {
     globals=M.insert name f (globals ctx),
-    locals=locals ctx
+    locals=locals ctx,
+    step=step ctx
   }
   (f, c)
   where
@@ -118,6 +131,6 @@ evaluateAndSet (AStatement (Assignment (FunctionDecl name args) expr)) ctx = do
           if length args /= length eargs then
             Err ("function '" ++ name ++ "' takes " ++ (show $ length args) ++ " argument(s), " ++ (show $ length eargs) ++ " provided")
           else let locals = zip args eargs
-                in evaluate expr Context{globals=globals actx, locals=M.fromList locals}
+                in evaluate expr Context{globals=globals actx, locals=M.fromList locals, step=step actx}
     makeName :: String -> [String] -> String
     makeName name args = name ++ "(" ++ (intercalate "," args) ++ ")"

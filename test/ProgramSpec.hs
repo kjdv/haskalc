@@ -4,17 +4,22 @@ import Test.Hspec
 import Program
 import Evaluator (Result(Num, Func, Err))
 
+strip :: String -> String
+strip "" = ""
+strip (' ':ss) = ss
+strip (s:ss) = strip ss
+
 -- run a series of statmentes
 mrun :: [String] -> [String]
 mrun input = doRun program input where
   doRun :: Program -> [String] -> [String]
   doRun _ [] = []
-  doRun p (s:ss) = let (o, p') = run p s in o : doRun p' ss
+  doRun p (s:ss) = let (o, p') = run p s in strip o : doRun p' ss
 
 programSpec :: Spec
 programSpec = do
   describe "statement execution" $ do
-    let srun = \s -> let (o, _) = run program s in o
+    let srun = \s -> let (o, _) = run program s in strip o
     describe "anomoly reporting" $ do
       it "gives nothing on the empty string" $ do
         srun "" `shouldBe` ""
@@ -69,3 +74,7 @@ programSpec = do
         mrun ["f(x) = x + y", "y=1", "f(2)"] `shouldBe` ["f(x)", "1.0", "3.0"]
       it "checks the number of arguments" $ do
         mrun ["f()=1.0", "f(1)"] `shouldBe` ["f()", "Error: function 'f' takes 0 argument(s), 1 provided"]
+      it "binds the last result to 'ans'" $ do
+        mrun ["2.0", "ans", "ans*3"] `shouldBe` ["2.0", "2.0", "6.0"]
+      it "binds the result to a 'ans_N', N being the statement number" $ do
+        mrun ["2.0", "3.0", "ans_1 * ans_2", "ans_3"] `shouldBe` ["2.0", "3.0", "6.0", "6.0"]
