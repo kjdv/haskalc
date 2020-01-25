@@ -2,11 +2,17 @@ module Lib
     ( readEvalPrintLoop
     ) where
 
-import Program
-import System.Console.Haskeline
+import           Program
+import           System.Console.Haskeline
+
+settings = Settings {
+    complete = noCompletion,
+    historyFile = Nothing,
+    autoAddHistory = True
+}
 
 readEvalPrintLoop :: IO ()
-readEvalPrintLoop = runInputT defaultSettings (loop program)
+readEvalPrintLoop = runInputT settings (loop program)
   where
     loop :: Program -> InputT IO ()
     loop prog = do
